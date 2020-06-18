@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>795a8cc9-c1f2-496b-969e-07ae7fbcd826</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>InhumaneCards</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)BaseGame.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Button.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\CrossableCard.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\DrawableCard.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\DrawableText.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\FontNum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Fonts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Menu.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Networking\GameClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Networking\GameServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Networking\NetworkingData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\RevealableWhiteCard.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\SelectableWhiteCard.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\SndNum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Sounds.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\TexNum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Textures.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InhumaneGame.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MainPartOfGame.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <MonoGameContentReference Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
+  </ItemGroup>
+</Project>

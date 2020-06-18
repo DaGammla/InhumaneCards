@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "InhumaneCards", "InhumaneCards\InhumaneCards.shproj", "{A0CDBD0E-3A41-42B7-9425-A838BC2C7383}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InhumaneAndroid", "InhumaneAndroid\InhumaneAndroid.csproj", "{9D580844-D437-4EF0-9E00-D4DCDE6796C1}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		InhumaneCards\InhumaneCards.projitems*{9d580844-d437-4ef0-9e00-d4dcde6796c1}*SharedItemsImports = 4
+		InhumaneCards\InhumaneCards.projitems*{a0cdbd0e-3a41-42b7-9425-a838bc2c7383}*SharedItemsImports = 13
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9D580844-D437-4EF0-9E00-D4DCDE6796C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D580844-D437-4EF0-9E00-D4DCDE6796C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D580844-D437-4EF0-9E00-D4DCDE6796C1}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{9D580844-D437-4EF0-9E00-D4DCDE6796C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D580844-D437-4EF0-9E00-D4DCDE6796C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D580844-D437-4EF0-9E00-D4DCDE6796C1}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {441A1584-6D30-489E-AFE3-E90668535E4F}
+	EndGlobalSection
+EndGlobal
