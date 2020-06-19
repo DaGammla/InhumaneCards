@@ -18,6 +18,9 @@ namespace InhumaneCards.Classes.Networking {
 	[XmlInclude(typeof(ClientCardNetDat))]
 	[XmlInclude(typeof(StartVotingPhaseNetDat))]
 	[XmlInclude(typeof(ClientCardCancelNetDat))]
+	[XmlInclude(typeof(RevealCardNetDat))]
+	[XmlInclude(typeof(OpenPageNetDat))]
+	[XmlInclude(typeof(RoundWinnerNetDat))]
 	public class NetworkingData {
 		public byte[] ToByteArray() {
 			var serializer = new XmlSerializer(typeof(NetworkingData));
@@ -141,6 +144,7 @@ namespace InhumaneCards.Classes.Networking {
 			this.cardOne = cardOne;
 		}
 		public ClientCardNetDat(string cardOne, string cardTwo) {
+			this.cardOne = cardOne;
 			this.cardTwo = cardTwo;
 		}
 	}
@@ -160,9 +164,48 @@ namespace InhumaneCards.Classes.Networking {
 
 	[Serializable]
 	public class ClientCardCancelNetDat : NetworkingData {
-		public PlayerCards[] playerCards;
 		public ClientCardCancelNetDat() {
 
 		}
 	}
+
+	[Serializable]
+	public class RevealCardNetDat : NetworkingData {
+		public byte playerToReveal;
+		public int revealFlag;
+		public RevealCardNetDat() {
+
+		}
+
+		public RevealCardNetDat(byte playerToReveal, int revealFlag) {
+			this.playerToReveal = playerToReveal;
+			this.revealFlag = revealFlag;
+		}
+	}
+
+	[Serializable]
+	public class OpenPageNetDat : NetworkingData {
+		public byte page;
+		public OpenPageNetDat() {
+
+		}
+
+		public OpenPageNetDat(byte page) {
+			this.page = page;
+		}
+	}
+
+	[Serializable]
+	public class RoundWinnerNetDat : NetworkingData {
+		public byte winnerId;
+		public RoundWinnerNetDat() {
+
+		}
+
+		public RoundWinnerNetDat(byte winnerId) {
+			this.winnerId = winnerId;
+		}
+	}
+
+
 }

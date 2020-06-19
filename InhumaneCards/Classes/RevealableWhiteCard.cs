@@ -16,10 +16,10 @@ namespace InhumaneCards.Classes {
 		private bool revealableByPlayer = false;
 		private Button revealButton;
 
-		private List<string> realLines;
+		private string realLines;
 
 
-		public RevealableWhiteCard(int posX, int posY, string text, bool revealableByPlayer, BaseGame game) : base(WHITE, posX, posY, text, game) {
+		public RevealableWhiteCard(int posX, int posY, string text, bool revealableByPlayer, BaseGame game) : base(WHITE, posX, posY, "???", game) {
 
 			this.revealableByPlayer = revealableByPlayer;
 			
@@ -31,9 +31,7 @@ namespace InhumaneCards.Classes {
 				lines.RemoveAt(lines.Count - 1);
 			}
 
-			realLines = lines;
-			lines = new List<string>();
-			lines.Add("???");
+			realLines = text;
 
 		}
 
@@ -45,7 +43,7 @@ namespace InhumaneCards.Classes {
 		}
 
 		public void Reveal() {
-			lines = realLines;
+			this.UpdateText(realLines);
 
 			this.revealed = true;
 

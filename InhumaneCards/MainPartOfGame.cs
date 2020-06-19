@@ -38,11 +38,15 @@ namespace InhumaneCards {
 		private static readonly Vector2 LINE_2_POS = new Vector2(LINE_1_POS.X + HOR_LINE_SIZE.X - InhumaneGame.BOX_WIDTH, LINE_1_POS.Y);
 		private static readonly Vector2 VER_LINE_SIZE = new Vector2(InhumaneGame.BOX_WIDTH, InhumaneGame.TARGET_Y - InhumaneGame.BOX_OFFSET - LINE_2_POS.Y);
 
+		private const int PAGE_BUTTON_HEIGHT = 80;
+		private const int PAGE_BUTTON_MARGIN = 10;
+
 		private const int WHITE_CARD_COUNT = 10;
 
 
 		private PhaseEnum phase;
 		private long tickNextPhaseShouldStart = -1L;
+		private byte votingPage = 0;
 
 		private string blackCardText;
 		private bool blackCardTakesTwo = false;
@@ -53,16 +57,18 @@ namespace InhumaneCards {
 		private DrawableCard drawableBlackCard;
 
 		private Button blankCardButton;
+		private Button nextPageButton;
+		private Button lastPageButton;
 
 		private DrawableText blankCardText;
 		private DrawableText currentlyText;
 		private DrawableText notAvailableText;
 		private DrawableText waitingForOtherPlayers;
+		private DrawableText winnerText;
 
 		private GameClient client;
 		private GameServer server;
 		private bool remote;
-
 		private byte clientsReady = 0;
 
 		private byte playerId { get; } = 0;
@@ -73,6 +79,7 @@ namespace InhumaneCards {
 		private byte playersWhoPicked = 0;
 		private byte[] randVotingMap;
 		private int[] revealedCards;
+		private byte winnerId = 255;
 
 		private string cardOne = null;
 		private string cardTwo = null;
@@ -86,7 +93,7 @@ namespace InhumaneCards {
 
 		public MainPartOfGame(InhumaneGame game) {
 			this.game = game;
-			this.rng = new Random();
+			this.rng = new Random(Environment.TickCount);
 
 			drawableBlackCard = new DrawableCard(DrawableCard.BLACK, BLACK_CARD_X, BLACK_CARD_Y, "Es wird auf alle Spieler gewartet", game.baseGame);
 
@@ -135,6 +142,42 @@ namespace InhumaneCards {
 				position = new Vector2(WHITE_START_X + 2.5f * DrawableCard.CARD_WIDTH + 2 * WHITE_MARGIN, WHITE_START_Y + DrawableCard.CARD_HEIGHT + WHITE_MARGIN / 2),
 				textSize = 1.25f
 			}.MeasureOriginToCenter();
+
+			winnerText = new DrawableText("Benutzername punktet", game.baseGame) {
+				position = new Vector2(InhumaneGame.TARGET_X / 2, InhumaneGame.TARGET_Y / 2),
+				textSize = 1.25f
+			}.MeasureOriginToCenter();
+
+			nextPageButton = new Button(">>", new Rectangle((int)LINE_2_POS.X + InhumaneGame.BOX_WIDTH + PAGE_BUTTON_MARGIN, WHITE_START_Y + DrawableCard.CARD_HEIGHT + WHITE_MARGIN / 2 - PAGE_BUTTON_HEIGHT - PAGE_BUTTON_MARGIN / 2, InhumaneGame.TARGET_X - InhumaneGame.BOX_OFFSET - InhumaneGame.BOX_WIDTH - ((int)LINE_2_POS.X + InhumaneGame.BOX_WIDTH) - PAGE_BUTTON_MARGIN * 2, PAGE_BUTTON_HEIGHT), game.baseGame, () => {
+				if (IsCzar()) {
+					votingPage++;
+					if (votingPage >= GetVotingPhasePages()) {
+						votingPage = (GetVotingPhasePages() - 1).B();
+					}
+					SetupWhiteCardsVotingPhase(votingPage, CheckForRevealed());
+					if (IsHost()) {
+						server.MulticastData(new OpenPageNetDat(votingPage));
+					} else {
+						client.SendDataToServer(new OpenPageNetDat(votingPage));
+					}
+				}
+			});
+
+
+			lastPageButton = new Button("<<", new Rectangle((int)LINE_2_POS.X + InhumaneGame.BOX_WIDTH + PAGE_BUTTON_MARGIN, WHITE_START_Y + DrawableCard.CARD_HEIGHT + WHITE_MARGIN / 2 + PAGE_BUTTON_MARGIN / 2, InhumaneGame.TARGET_X - InhumaneGame.BOX_OFFSET - InhumaneGame.BOX_WIDTH - ((int)LINE_2_POS.X + InhumaneGame.BOX_WIDTH) - PAGE_BUTTON_MARGIN * 2, PAGE_BUTTON_HEIGHT), game.baseGame, () => {
+				if (IsCzar()) {
+					votingPage--;
+					if (votingPage < 0) {
+						votingPage = 0;
+					}
+					SetupWhiteCardsVotingPhase(votingPage, CheckForRevealed());
+					if (IsHost()) {
+						server.MulticastData(new OpenPageNetDat(votingPage));
+					} else {
+						client.SendDataToServer(new OpenPageNetDat(votingPage));
+					}
+				}
+			});
 
 			this.playerId = game.GetPlayerId();
 			this.playerCount = game.GetPlayerCount();
@@ -213,6 +256,33 @@ namespace InhumaneCards {
 
 				StartVotingPhase();
 			}
+
+			if (dat is RevealCardNetDat) {
+				var data = (RevealCardNetDat) dat;
+
+				revealedCards[data.playerToReveal] = data.revealFlag;
+
+				if (CheckForRevealed()) {
+					SetupWhiteCardsVotingPhase(votingPage, true);
+				} else {
+					SetupWhiteCardsVotingPhase(votingPage);
+				}
+			}
+
+			if (dat is OpenPageNetDat) {
+				var data = (OpenPageNetDat)dat;
+
+				if (phase == PhaseEnum.VOTING) {
+					votingPage = data.page;
+					SetupWhiteCardsVotingPhase(votingPage, CheckForRevealed());
+				}
+
+			}
+			if (dat is RoundWinnerNetDat) {
+				var data = (RoundWinnerNetDat)dat;
+
+				DetermineRoundWinner(data.winnerId);
+			}
 		}
 
 		private void HostDataReceiver(NetworkingData dat, byte clientId) {
@@ -257,6 +327,42 @@ namespace InhumaneCards {
 			if (dat is ClientCardCancelNetDat) {
 				playersWhoPicked--;
 			}
+
+			if (dat is RevealCardNetDat) {
+				var data = (RevealCardNetDat) dat;
+
+				if (clientId == czarId) {
+					revealedCards[data.playerToReveal] = data.revealFlag;
+					
+					server.MulticastDataExcept(data, czarId);
+
+					if (CheckForRevealed()) {
+						SetupWhiteCardsVotingPhase(votingPage, true);
+					} else {
+						SetupWhiteCardsVotingPhase(votingPage);
+					}
+				}
+			}
+			if (dat is OpenPageNetDat) {
+				var data = (OpenPageNetDat)dat;
+
+				if (phase == PhaseEnum.VOTING && czarId == clientId) {
+					votingPage = data.page;
+					SetupWhiteCardsVotingPhase(votingPage, CheckForRevealed());
+					server.MulticastDataExcept(new OpenPageNetDat(votingPage), clientId);
+				}
+
+			}
+			if (dat is RoundWinnerNetDat) {
+				var data = (RoundWinnerNetDat)dat;
+
+				if (clientId == czarId) {
+
+					DetermineRoundWinner(data.winnerId);
+
+					server.MulticastDataExcept(data, clientId);
+				}
+			}
 		}
 
 		private bool IsCzar() {
@@ -264,6 +370,13 @@ namespace InhumaneCards {
 		}
 
 		private void StartSelectingPhase() {
+
+			playerCards = new PlayerCards[playerCount];
+			playersWhoPicked = 0;
+			revealedCards = new int[playerCount];
+
+			cardsToDraw.Clear();
+
 			if (IsHost()) {
 				if (czarId == 255) {
 					czarId = rng.Next(playerCount).B();
@@ -348,8 +461,6 @@ namespace InhumaneCards {
 								}
 							}
 
-							
-
 							if (IsClient()) {
 								client.SendDataToServer(new ClientCardNetDat(cardOne, cardTwo));
 							} else {
@@ -376,7 +487,7 @@ namespace InhumaneCards {
 						if (IsClient()) {
 							client.SendDataToServer(new ClientCardNetDat(cardOne));
 						} else {
-							var playersCards = new PlayerCards(cardOne);
+							var playersCards = new PlayerCards(cardOne, null);
 							playerCards[playerId] = playersCards;
 
 							playersWhoPicked++;
@@ -391,8 +502,8 @@ namespace InhumaneCards {
 				whiteCard.WithCancelListener(() => {
 					if (blackCardTakesTwo) {
 						if (cardOne == cardText) {
-							cardOne = null;
-
+							cardOne = cardTwo;
+							cardTwo = null;
 						} else {
 							cardTwo = null;
 
@@ -460,6 +571,15 @@ namespace InhumaneCards {
 
 		private void StartVotingPhase() {
 
+			winnerId = 255;
+			votingPage = 0;
+			revealedCards = new int[playerCount];
+
+			if (!IsCzar()) {
+				whiteCards.Remove(cardOne);
+				whiteCards.Remove(cardTwo);
+			}
+
 			if (IsHost()) {
 
 				int seed = rng.Next();
@@ -478,53 +598,233 @@ namespace InhumaneCards {
 
 		private int GetVotingPhasePages() {
 			if (blackCardTakesTwo) {
-				return 0;
+				return ((playerCount - 2) / 3) + 1;
 			} else {
 				return ((playerCount - 2) / 10) + 1;
 			}
 		}
 
-		private void SetupWhiteCardsVotingPhase(byte page) {
+		private void SetupWhiteCardsVotingPhase(byte page, bool everyoneRevealed = false) {
+
+			this.votingPage = page;
+
 			cardsToDraw.Clear();
 
-			if (blackCardTakesTwo) {
+			if (!everyoneRevealed) {
 
-			} else {
+				if (blackCardTakesTwo) {
 
-				int startPlayerId = 10 * page;
+					int startPlayerId = 3 * page;
 
-				int endId = startPlayerId + 9;
-				if (endId >= playerCount - 1) {
-					endId = playerCount - 2;
-				}
-
-				for (int i = startPlayerId; i <= endId; i++) {
-
-					int j = i - startPlayerId;
-
-					byte id = randVotingMap[i];
-
-					var whiteCard = new RevealableWhiteCard(WHITE_START_X + j / 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y + j % 2 * (DrawableCard.CARD_HEIGHT + WHITE_MARGIN), playerCards[id].cardOne, IsCzar(), game.baseGame);
-
-					if ((revealedCards[id] & 1) != 0) {
-						whiteCard.Reveal();
+					int endId = startPlayerId + 2;
+					if (endId >= playerCount - 1) {
+						endId = playerCount - 2;
 					}
 
-					whiteCard.WithRevealListener(() => {
-						if (IsCzar()) {
-							if (IsHost()) {
-								revealedCards[id] |= 1;
-							} else {
-								
-							}
+					for (int i = startPlayerId; i <= endId; i++) {
+
+						int j = i - startPlayerId;
+
+						byte id = randVotingMap[i];
+
+						var whiteCardOne = new RevealableWhiteCard(WHITE_START_X + j * 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y, playerCards[id].cardOne, IsCzar(), game.baseGame);
+						var whiteCardTwo = new RevealableWhiteCard(WHITE_START_X + j * 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y + DrawableCard.CARD_HEIGHT + WHITE_MARGIN, playerCards[id].cardTwo, IsCzar(), game.baseGame);
+
+						if ((revealedCards[id] & 1) != 0) {
+							whiteCardOne.Reveal();
 						}
-					});
+						if ((revealedCards[id] & 2) != 0) {
+							whiteCardTwo.Reveal();
+						}
 
-					cardsToDraw.Add(whiteCard);
+						whiteCardOne.WithRevealListener(() => {
+							if (IsCzar()) {
+								revealedCards[id] |= 1;
+
+								if (IsHost()) {
+									server.MulticastData(new RevealCardNetDat(id, revealedCards[id]));
+
+								} else {
+									client.SendDataToServer(new RevealCardNetDat(id, revealedCards[id]));
+								}
+
+								if (CheckForRevealed()) {
+									SetupWhiteCardsVotingPhase(page, true);
+								}
+							}
+						});
+
+						whiteCardTwo.WithRevealListener(() => {
+							if (IsCzar()) {
+								revealedCards[id] |= 2;
+
+								if (IsHost()) {
+									server.MulticastData(new RevealCardNetDat(id, revealedCards[id]));
+
+								} else {
+									client.SendDataToServer(new RevealCardNetDat(id, revealedCards[id]));
+								}
+
+								if (CheckForRevealed()) {
+									SetupWhiteCardsVotingPhase(page, true);
+								}
+							}
+						});
+
+						cardsToDraw.Add(whiteCardOne);
+						cardsToDraw.Add(whiteCardTwo);
+					}
+
+				} else {
+
+					int startPlayerId = 10 * page;
+
+					int endId = startPlayerId + 9;
+					if (endId >= playerCount - 1) {
+						endId = playerCount - 2;
+					}
+
+					for (int i = startPlayerId; i <= endId; i++) {
+
+						int j = i - startPlayerId;
+
+						byte id = randVotingMap[i];
+
+						var whiteCard = new RevealableWhiteCard(WHITE_START_X + j / 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y + j % 2 * (DrawableCard.CARD_HEIGHT + WHITE_MARGIN), playerCards[id].cardOne, IsCzar(), game.baseGame);
+
+						if ((revealedCards[id] & 1) != 0) {
+							whiteCard.Reveal();
+						}
+
+						whiteCard.WithRevealListener(() => {
+							if (IsCzar()) {
+								if (IsHost()) {
+									revealedCards[id] |= 1;
+									server.MulticastData(new RevealCardNetDat(id, revealedCards[id]));
+									if (CheckForRevealed()) {
+										SetupWhiteCardsVotingPhase(page, true);
+									}
+
+								} else {
+									revealedCards[id] |= 1;
+									client.SendDataToServer(new RevealCardNetDat(id, revealedCards[id]));
+									if (CheckForRevealed()) {
+										SetupWhiteCardsVotingPhase(page, true);
+									}
+								}
+							}
+						});
+
+						cardsToDraw.Add(whiteCard);
+					}
+
 				}
+			} else {
 
+				if (blackCardTakesTwo) {
+					int startPlayerId = 3 * page;
+
+					int endId = startPlayerId + 2;
+					if (endId >= playerCount - 1) {
+						endId = playerCount - 2;
+					}
+
+					for (int i = startPlayerId; i <= endId; i++) {
+
+						int j = i - startPlayerId;
+
+						byte id = randVotingMap[i];
+
+						DrawableCard whiteCardOne;
+						DrawableCard whiteCardTwo;
+						if (IsCzar()) {
+							whiteCardOne = new WinnableWhiteCard(WHITE_START_X + j * 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y, playerCards[id].cardOne, game.baseGame).WithWinningListener(() => {
+								DetermineRoundWinner(id);
+							});
+							whiteCardTwo = new WinnableWhiteCard(WHITE_START_X + j * 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y + DrawableCard.CARD_HEIGHT + WHITE_MARGIN, playerCards[id].cardTwo, game.baseGame).WithWinningListener(() => {
+								DetermineRoundWinner(id);
+							});
+						} else {
+							whiteCardOne = new DrawableCard(DrawableCard.WHITE, WHITE_START_X + j * 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y, playerCards[id].cardOne, game.baseGame);
+							whiteCardTwo = new DrawableCard(DrawableCard.WHITE, WHITE_START_X + j * 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y + DrawableCard.CARD_HEIGHT + WHITE_MARGIN, playerCards[id].cardTwo, game.baseGame);
+						}
+
+						cardsToDraw.Add(whiteCardOne);
+						cardsToDraw.Add(whiteCardTwo);
+					}
+				} else {
+
+					int startPlayerId = 10 * page;
+
+					int endId = startPlayerId + 9;
+					if (endId >= playerCount - 1) {
+						endId = playerCount - 2;
+					}
+
+					for (int i = startPlayerId; i <= endId; i++) {
+
+						int j = i - startPlayerId;
+
+						byte id = randVotingMap[i];
+
+						DrawableCard whiteCard;
+
+						if (IsCzar()) {
+							whiteCard = new WinnableWhiteCard(WHITE_START_X + j / 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y + j % 2 * (DrawableCard.CARD_HEIGHT + WHITE_MARGIN), playerCards[id].cardOne, game.baseGame)
+								.WithWinningListener(() => {
+									DetermineRoundWinner(id);
+								});
+							
+						} else {
+							whiteCard = new DrawableCard(DrawableCard.WHITE, WHITE_START_X + j / 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y + j % 2 * (DrawableCard.CARD_HEIGHT + WHITE_MARGIN), playerCards[id].cardOne, game.baseGame);
+						}
+
+						cardsToDraw.Add(whiteCard);
+					}
+				}
+			}
+		}
+
+		private void DetermineRoundWinner(byte winnerId) {
+
+			if (IsWinnerDetermined()) {
+				return;
 			}
 
+			this.winnerId = winnerId;
+
+			this.winnerText.text = game.GetPlayer(winnerId) + " punket";
+			this.winnerText.MeasureOriginToCenter();
+			this.score[winnerId]++; 
+
+			if (IsCzar()) {
+
+				if (IsHost()) {
+					server.MulticastData(new RoundWinnerNetDat(winnerId));
+				} else {
+					client.SendDataToServer(new RoundWinnerNetDat(winnerId));
+				}
+			}
+
+			if (IsHost()) {
+				tickNextPhaseShouldStart = ticks + 60;
+			}
+		}
+
+		private bool IsWinnerDetermined() {
+			return winnerId != 255;
+		}
+
+		private bool CheckForRevealed() {
+			bool everyoneRevealed = true;
+			int compareFlag = blackCardTakesTwo ? 3 : 1;
+			for (byte b = 0; b < playerCount; b++) {
+				if (b != czarId && revealedCards[b] != compareFlag) {
+					everyoneRevealed = false;
+					break;
+				}
+			}
+			return everyoneRevealed;
 		}
 
 		private void ApplyRandomBlackCard() {
@@ -555,8 +855,8 @@ namespace InhumaneCards {
 					if (playersWhoPicked == playerCount - 1) {
 						StartVotingPhase();
 					}
-				} else {
-					
+				} else if (phase == PhaseEnum.VOTING) {
+					StartSelectingPhase();
 				}
 			}
 
@@ -570,6 +870,15 @@ namespace InhumaneCards {
 				}
 			} catch {
 
+			}
+
+			if (IsCzar() && phase == PhaseEnum.VOTING) {
+				if (votingPage < GetVotingPhasePages() - 1) {
+					nextPageButton.Update();
+				}
+				if (votingPage > 0) {
+					lastPageButton.Update();
+				}
 			}
 		}
 
@@ -609,6 +918,22 @@ namespace InhumaneCards {
 			if (IsCzar() && phase == PhaseEnum.SELECTING) {
 				waitingForOtherPlayers.Draw();
 			}
+
+			if (IsCzar() && phase == PhaseEnum.VOTING) {
+				if (votingPage < GetVotingPhasePages() - 1) {
+					nextPageButton.Draw();
+				}
+				if (votingPage > 0) {
+					lastPageButton.Draw();
+				}
+			}
+
+			if (phase == PhaseEnum.VOTING) {
+				if (IsWinnerDetermined()) {
+					winnerText.Draw();
+				}
+			}
+
 		}
 
 		private void DrawScoreboard() {
@@ -631,7 +956,7 @@ namespace InhumaneCards {
 	public class PlayerCards {
 		public string cardOne;
 		public string cardTwo;
-		public PlayerCards(string cardOne, string cardTwo = null) {
+		public PlayerCards(string cardOne, string cardTwo) {
 			this.cardOne = cardOne;
 			this.cardTwo = cardTwo;
 		}

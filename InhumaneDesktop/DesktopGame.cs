@@ -27,7 +27,7 @@ namespace InhumaneCardsDesktop {
             this.childGame = new InhumaneGame(this);
             this.IsMouseVisible = true;
 
-            ResizeScreen(1600, 900);
+            ResizeScreen(1280, 720);
 
             justResized = false;
 

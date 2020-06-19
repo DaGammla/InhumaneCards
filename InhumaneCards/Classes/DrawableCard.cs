@@ -42,6 +42,10 @@ namespace InhumaneCards.Classes {
 		public void UpdateText(string text) {
 			lines = new List<string>();
 
+			if (text == null) {
+				text = "";
+			}
+
 			text = Regex.Replace(text, @"\b-\b", "- µ");
 
 			var wordSplit = text.Split(' ');

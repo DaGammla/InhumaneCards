@@ -32,9 +32,9 @@ namespace InhumaneCards.Classes.Networking {
 
 		public void StartServer() {
 
-			if (!NetworkInterface.GetIsNetworkAvailable()) {
+			/*if (!NetworkInterface.GetIsNetworkAvailable()) {
 				throw new Exception("Not connected to any Network");
-			}
+			}*/
 
 			IPAddress ip = IPAddress.Any;
 

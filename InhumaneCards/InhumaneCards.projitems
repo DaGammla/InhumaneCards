@@ -20,6 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Classes\Networking\GameClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\Networking\GameServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\Networking\NetworkingData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\WinnableWhiteCard.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\RevealableWhiteCard.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\SelectableWhiteCard.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\SndNum.cs" />
@@ -35,5 +36,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)Content\black_cards.txt" />
+    <Content Include="$(MSBuildThisFileDirectory)Content\white_cards.txt" />
   </ItemGroup>
 </Project>
