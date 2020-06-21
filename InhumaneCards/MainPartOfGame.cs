@@ -809,7 +809,7 @@ namespace InhumaneCards {
 
 			this.winnerId = winnerId;
 
-			this.winnerText.text = game.GetPlayer(winnerId) + " punket";
+			this.winnerText.text = game.GetPlayer(winnerId) + " punktet";
 			this.winnerText.MeasureOriginToCenter();
 			this.score[winnerId]++; 
 
@@ -886,6 +886,12 @@ namespace InhumaneCards {
 				}
 			} catch {
 
+			}
+
+			if (phase == PhaseEnum.SELECTING) {
+				if (playersWhoPicked == playerCount - 1 && tickNextPhaseShouldStart < ticks - 60) {
+					tickNextPhaseShouldStart = ticks + 30;
+				}
 			}
 
 			if (IsCzar() && phase == PhaseEnum.VOTING) {
