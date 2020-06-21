@@ -374,6 +374,8 @@ namespace InhumaneCards {
 			playerCards = new PlayerCards[playerCount];
 			playersWhoPicked = 0;
 			revealedCards = new int[playerCount];
+			cardOne = null;
+			cardTwo = null;
 
 			cardsToDraw.Clear();
 
@@ -427,6 +429,10 @@ namespace InhumaneCards {
 
 		private void SetupWhiteCardsSelectingPhase() {
 			cardsToDraw.Clear();
+
+			bool hideUnchecked = false;
+
+			hideUnchecked = (!blackCardTakesTwo && cardOne != null) || (blackCardTakesTwo && cardOne != null && cardTwo != null);
 
 			for (int i = 0; i < whiteCards.Count; i++) {
 
@@ -533,6 +539,16 @@ namespace InhumaneCards {
 						}
 					}
 				});
+
+				whiteCard.okayActive = cardOne != cardText && cardTwo != cardText;
+
+				if (hideUnchecked) {
+
+					if (whiteCard.okayActive) {
+						whiteCard.buttonsActive = false;
+					}
+				}
+
 				cardsToDraw.Add(whiteCard);
 			}
 		}
