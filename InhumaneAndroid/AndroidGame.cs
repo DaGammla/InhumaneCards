@@ -33,6 +33,7 @@ namespace InhumaneCardsAndroid {
 			graphics.PreferredBackBufferHeight = InhumaneGame.TARGET_Y;
 
 			graphics.SupportedOrientations = DisplayOrientation.LandscapeRight | DisplayOrientation.LandscapeLeft;
+			graphics.ApplyChanges();
 			this.TargetElapsedTime = TimeSpan.FromSeconds(1d / 30d);
 
 		}
@@ -44,7 +45,7 @@ namespace InhumaneCardsAndroid {
 		/// and initialize them as well.
 		/// </summary>
 		protected override void Initialize() {
-			screenSize = (float)GraphicsDevice.DisplayMode.Width / InhumaneGame.TARGET_X;
+			screenSize = ((float)GraphicsDevice.DisplayMode.Width) / ((float)InhumaneGame.TARGET_X);
 			childGame.Init();
 
 			base.Initialize();
@@ -87,6 +88,7 @@ namespace InhumaneCardsAndroid {
 
 			if (ticks % 30 == 0) {
 				xamarinActivity.FixFullscreen();
+				screenSize = ((float)GraphicsDevice.DisplayMode.Width) / ((float)InhumaneGame.TARGET_X);
 			}
 
 			mousePosition = Point.Zero;
@@ -137,11 +139,11 @@ namespace InhumaneCardsAndroid {
 		}
 
 		public override void Draw(Texture2D texture, Vector2 position, Color color) {
-			spriteBatch.Draw(texture, position * screenSize, color);
+			spriteBatch.Draw(texture, position * screenSize, null, color, 0f, Vector2.Zero, screenSize, SpriteEffects.None, 0);
 		}
 
 		public override void Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color) {
-			spriteBatch.Draw(texture, position * screenSize, sourceRectangle, color);
+			spriteBatch.Draw(texture, position * screenSize, sourceRectangle, color, 0f, Vector2.Zero, screenSize, SpriteEffects.None, 0);
 		}
 
 		public override void Draw(Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, SpriteEffects effects, float layerDepth) {

@@ -165,11 +165,11 @@ namespace InhumaneCardsDesktop {
         }
 
         public override void Draw(Texture2D texture, Vector2 position, Color color) {
-            spriteBatch.Draw(texture, position * screenSize + screenOffset, color);
+            spriteBatch.Draw(texture, position * screenSize + screenOffset, null, color, 0f, Vector2.Zero, screenSize, SpriteEffects.None, 0);
         }
 
         public override void Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color) {
-            spriteBatch.Draw(texture, position * screenSize + screenOffset, sourceRectangle, color);
+            spriteBatch.Draw(texture, position * screenSize + screenOffset, sourceRectangle, color, 0f, Vector2.Zero, screenSize, SpriteEffects.None, 0);
         }
 
         public override void Draw(Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, SpriteEffects effects, float layerDepth) {
