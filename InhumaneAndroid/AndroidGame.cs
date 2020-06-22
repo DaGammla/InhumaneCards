@@ -52,8 +52,8 @@ namespace InhumaneCardsAndroid {
 		}
 
 		private void SetScreenSize(){
-			sizeX = ((float)GraphicsDevice.DisplayMode.Width) / ((float)InhumaneGame.TARGET_X);
-			sizeY = ((float)GraphicsDevice.DisplayMode.Height) / ((float)InhumaneGame.TARGET_Y);
+			float sizeX = ((float)GraphicsDevice.DisplayMode.Width) / ((float)InhumaneGame.TARGET_X);
+			float sizeY = ((float)GraphicsDevice.DisplayMode.Height) / ((float)InhumaneGame.TARGET_Y);
 
 			if (sizeX < sizeY){
 				screenSize = sizeX;
