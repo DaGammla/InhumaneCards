@@ -45,10 +45,21 @@ namespace InhumaneCardsAndroid {
 		/// and initialize them as well.
 		/// </summary>
 		protected override void Initialize() {
-			screenSize = ((float)GraphicsDevice.DisplayMode.Width) / ((float)InhumaneGame.TARGET_X);
+			SetScreenSize();
 			childGame.Init();
 
 			base.Initialize();
+		}
+
+		private void SetScreenSize(){
+			sizeX = ((float)GraphicsDevice.DisplayMode.Width) / ((float)InhumaneGame.TARGET_X);
+			sizeY = ((float)GraphicsDevice.DisplayMode.Height) / ((float)InhumaneGame.TARGET_Y);
+
+			if (sizeX < sizeY){
+				screenSize = sizeX;
+			} else {
+				screenSize = sizeY;
+			}
 		}
 
 		/// <summary>
@@ -88,7 +99,7 @@ namespace InhumaneCardsAndroid {
 
 			if (ticks % 30 == 0) {
 				xamarinActivity.FixFullscreen();
-				screenSize = ((float)GraphicsDevice.DisplayMode.Width) / ((float)InhumaneGame.TARGET_X);
+				SetScreenSize();
 			}
 
 			mousePosition = Point.Zero;
