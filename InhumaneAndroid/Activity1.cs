@@ -1,5 +1,7 @@
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
+using Android.Content.Res;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
@@ -10,7 +12,7 @@ namespace InhumaneCardsAndroid {
 	[Activity(Label = "Inhumane Cards"
 		, MainLauncher = true
 		, Icon = "@drawable/icon"
-		, Theme = "@style/Theme.Splash"
+		, Theme = "@style/Theme.AppCompat"
 		, AlwaysRetainTaskState = true
 		, LaunchMode = LaunchMode.SingleInstance
 		, ScreenOrientation = ScreenOrientation.Landscape | ScreenOrientation.ReverseLandscape | ScreenOrientation.UserLandscape
@@ -52,11 +54,16 @@ namespace InhumaneCardsAndroid {
 			EditText et = new EditText(this) {
 				Text = defaultText
 			};
+			et.SetSingleLine(true);
+
 			AlertDialog.Builder ad = new AlertDialog.Builder(this);
 			ad.SetTitle(title);
 			ad.SetView(et);
 			ad.SetPositiveButton("Okay", (arg0, arg1) => {
 				onDoneAction(et.Text);
+			});
+			ad.SetNegativeButton("Abbrechen", (arg0, arg1) => {
+
 			});
 			
 			ad.Show();
