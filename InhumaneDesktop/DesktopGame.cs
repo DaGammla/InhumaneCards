@@ -17,6 +17,7 @@ namespace InhumaneCardsDesktop {
         InhumaneGame childGame;
 
         float screenSize = 1f;
+        Vector2 screenOffset = Vector2.Zero;
         bool justResized = false;
 
         private const int MULTISAMPLING_COUNT = 8;
@@ -27,7 +28,7 @@ namespace InhumaneCardsDesktop {
             this.childGame = new InhumaneGame(this);
             this.IsMouseVisible = true;
 
-            ResizeScreen(1280, 720);
+            ResizeScreen(1280, 720, true);
 
             justResized = false;
 
@@ -52,7 +53,29 @@ namespace InhumaneCardsDesktop {
 
         }
 
-        public void ResizeScreen(int x, int y) {
+        public void ResizeScreen(int x, int y, bool applyBackBuffer = false) {
+            float scaleX = (float)x / (float)InhumaneGame.TARGET_X;
+            float scaleY = (float)y / (float)InhumaneGame.TARGET_Y;
+
+            //Takes the scale thats smaller and sets it as screen_scale
+            screenSize = scaleX < scaleY ? scaleX : scaleY;
+
+            if (applyBackBuffer) {
+                graphics.PreferredBackBufferWidth = x;
+                graphics.PreferredBackBufferHeight = y;
+            }
+
+            if (scaleX > scaleY) {
+                screenOffset = new Vector2(x - InhumaneGame.TARGET_X * screenSize, 0) * 0.5f;
+            } else {
+                screenOffset = new Vector2(0, y - InhumaneGame.TARGET_Y * screenSize) * 0.5f;
+            }
+
+            justResized = true;
+            graphics.ApplyChanges();
+        }
+
+        /*public void ResizeScreen(int x, int y) {
             float scaleX = (float)x / (float)InhumaneGame.TARGET_X;
             float scaleY = (float)y / (float)InhumaneGame.TARGET_Y;
 
@@ -65,7 +88,7 @@ namespace InhumaneCardsDesktop {
 
             justResized = true;
             graphics.ApplyChanges();
-        }
+        }*/
 
         /// <summary>
         /// Allows the game to perform any initialization it needs to before starting to run.
@@ -138,50 +161,50 @@ namespace InhumaneCardsDesktop {
         }
 
         public override void Draw(Texture2D texture, Rectangle destinationRectangle, Color color) {
-            spriteBatch.Draw(texture, destinationRectangle.Times(screenSize), color);
+            spriteBatch.Draw(texture, destinationRectangle.Times(screenSize).SelfOffset(screenOffset), color);
         }
 
         public override void Draw(Texture2D texture, Vector2 position, Color color) {
-            spriteBatch.Draw(texture, position * screenSize, color);
+            spriteBatch.Draw(texture, position * screenSize + screenOffset, color);
         }
 
         public override void Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color) {
-            spriteBatch.Draw(texture, position * screenSize, sourceRectangle, color);
+            spriteBatch.Draw(texture, position * screenSize + screenOffset, sourceRectangle, color);
         }
 
         public override void Draw(Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, SpriteEffects effects, float layerDepth) {
-            spriteBatch.Draw(texture, destinationRectangle.Times(screenSize), sourceRectangle, color, rotation, origin, effects, layerDepth);
+            spriteBatch.Draw(texture, destinationRectangle.Times(screenSize).SelfOffset(screenOffset), sourceRectangle, color, rotation, origin, effects, layerDepth);
         }
 
         public override void Draw(Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color) {
-            spriteBatch.Draw(texture, destinationRectangle.Times(screenSize), sourceRectangle, color);
+            spriteBatch.Draw(texture, destinationRectangle.Times(screenSize).SelfOffset(screenOffset), sourceRectangle, color);
         }
 
         public override void Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth) {
-            spriteBatch.Draw(texture, position * screenSize, sourceRectangle, color, rotation, origin, scale * screenSize, effects, layerDepth);
+            spriteBatch.Draw(texture, position * screenSize + screenOffset, sourceRectangle, color, rotation, origin, scale * screenSize, effects, layerDepth);
         }
 
         public override void Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth) {
-            spriteBatch.Draw(texture, position * screenSize, sourceRectangle, color, rotation, origin, scale * screenSize, effects, layerDepth);
+            spriteBatch.Draw(texture, position * screenSize + screenOffset, sourceRectangle, color, rotation, origin, scale * screenSize, effects, layerDepth);
         }
 
         public override void DrawString(SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth) {
-            spriteBatch.DrawString(spriteFont, text, position * screenSize, color, rotation, origin, scale * screenSize, effects, layerDepth);
+            spriteBatch.DrawString(spriteFont, text, position * screenSize + screenOffset, color, rotation, origin, scale * screenSize, effects, layerDepth);
         }
         public override void DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color) {
-            spriteBatch.DrawString(spriteFont, text, position * screenSize, color);
+            spriteBatch.DrawString(spriteFont, text, position * screenSize + screenOffset, color);
         }
         public override void DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth) {
-            spriteBatch.DrawString(spriteFont, text, position * screenSize, color, rotation, origin, scale * screenSize, effects, layerDepth);
+            spriteBatch.DrawString(spriteFont, text, position * screenSize + screenOffset, color, rotation, origin, scale * screenSize, effects, layerDepth);
         }
         public override void DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth) {
-            spriteBatch.DrawString(spriteFont, text, position * screenSize, color, rotation, origin, scale * screenSize, effects, layerDepth);
+            spriteBatch.DrawString(spriteFont, text, position * screenSize + screenOffset, color, rotation, origin, scale * screenSize, effects, layerDepth);
         }
         public override void DrawString(SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color) {
-            spriteBatch.DrawString(spriteFont, text, position * screenSize, color);
+            spriteBatch.DrawString(spriteFont, text, position * screenSize + screenOffset, color);
         }
         public override void DrawString(SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth) {
-            spriteBatch.DrawString(spriteFont, text, position * screenSize, color, rotation, origin, scale * screenSize, effects, layerDepth);
+            spriteBatch.DrawString(spriteFont, text, position * screenSize + screenOffset, color, rotation, origin, scale * screenSize, effects, layerDepth);
         }
 
         public override bool GotMouseReleased() {

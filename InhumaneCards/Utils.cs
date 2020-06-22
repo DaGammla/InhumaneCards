@@ -12,6 +12,11 @@ namespace InhumaneCards {
 			return new Rectangle(self.Location.Times(factor), self.Size.Times(factor));
 		}
 
+		public static Rectangle SelfOffset(this Rectangle self, Vector2 offsetVector) {
+			self.Offset(offsetVector.X, offsetVector.Y);
+			return self;
+		}
+
 		public static Point Times(this Point self, float factor) {
 			return new Point((int)(self.X * factor), (int)(self.Y * factor));
 		}

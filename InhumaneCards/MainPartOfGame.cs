@@ -114,8 +114,10 @@ namespace InhumaneCards {
 							}
 							cardText = cardBuilder.ToString();
 
-							whiteCards.Add(cardText);
-							SetupWhiteCardsSelectingPhase();
+							if (!whiteCards.Contains(cardText)) {
+								whiteCards.Add(cardText);
+								SetupWhiteCardsSelectingPhase();
+							}
 						}
 					});
 
@@ -418,7 +420,10 @@ namespace InhumaneCards {
 
 			} else {
 				while (whiteCards.Count < WHITE_CARD_COUNT) {
-					whiteCards.Add(GetRandomWhiteCard());
+					var cardText = GetRandomWhiteCard();
+					if (!whiteCards.Contains(cardText)) {
+						whiteCards.Add(cardText);
+					}
 				}
 
 				SetupWhiteCardsSelectingPhase();
