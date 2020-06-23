@@ -65,6 +65,7 @@ namespace InhumaneCards {
 		private DrawableText notAvailableText;
 		private DrawableText waitingForOtherPlayers;
 		private DrawableText winnerText;
+		private Rectangle winnerBox;
 
 		private GameClient client;
 		private GameServer server;
@@ -145,10 +146,12 @@ namespace InhumaneCards {
 				textSize = 1.25f
 			}.MeasureOriginToCenter();
 
-			winnerText = new DrawableText("Benutzername punktet", game.baseGame) {
+			winnerText = new DrawableText(game.baseGame) {
 				position = new Vector2(InhumaneGame.TARGET_X / 2, InhumaneGame.TARGET_Y / 2),
 				textSize = 1.25f
-			}.MeasureOriginToCenter();
+			};
+
+			MakeWinnerText("Benutzername");
 
 			nextPageButton = new Button(">>", new Rectangle((int)LINE_2_POS.X + InhumaneGame.BOX_WIDTH + PAGE_BUTTON_MARGIN, WHITE_START_Y + DrawableCard.CARD_HEIGHT + WHITE_MARGIN / 2 - PAGE_BUTTON_HEIGHT - PAGE_BUTTON_MARGIN / 2, InhumaneGame.TARGET_X - InhumaneGame.BOX_OFFSET - InhumaneGame.BOX_WIDTH - ((int)LINE_2_POS.X + InhumaneGame.BOX_WIDTH) - PAGE_BUTTON_MARGIN * 2, PAGE_BUTTON_HEIGHT), game.baseGame, () => {
 				if (IsCzar()) {
@@ -208,10 +211,6 @@ namespace InhumaneCards {
 			server.SetDataReceiver(HostDataReceiver);
 
 			this.remote = false;
-
-			if (playerCount == 1) {
-				StartSelectingPhase();
-			}
 
 			return this;
 		}
@@ -396,7 +395,9 @@ namespace InhumaneCards {
 				server.MulticastData(new StartSelectingNetDat(czarId, blackCardText, blackCardTakesTwo));
 			}
 
-			if (IsCzar() && playerCount > 1) {
+			UpdateScoreboard();
+
+			if (IsCzar()) {
 
 				this.drawableBlackCard = new CrossableCard(DrawableCard.BLACK, BLACK_CARD_X, BLACK_CARD_Y, blackCardText, game.baseGame).WithCrossListener(() => {
 					if (IsHost()) {
@@ -596,6 +597,8 @@ namespace InhumaneCards {
 			votingPage = 0;
 			revealedCards = new int[playerCount];
 
+			UpdateScoreboard();
+
 			if (!IsCzar()) {
 				whiteCards.Remove(cardOne);
 				whiteCards.Remove(cardTwo);
@@ -758,7 +761,15 @@ namespace InhumaneCards {
 
 						DrawableCard whiteCardOne;
 						DrawableCard whiteCardTwo;
-						if (IsCzar()) {
+						if (IsWinnerDetermined()) {
+							if (winnerId == id) {
+								whiteCardOne = new WinnerWhiteCard(WHITE_START_X + j * 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y, playerCards[id].cardOne, game.baseGame);
+								whiteCardTwo = new WinnerWhiteCard(WHITE_START_X + j * 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y + DrawableCard.CARD_HEIGHT + WHITE_MARGIN, playerCards[id].cardTwo, game.baseGame);
+							} else {
+								whiteCardOne = new DrawableCard(DrawableCard.WHITE, WHITE_START_X + j * 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y, playerCards[id].cardOne, game.baseGame);
+								whiteCardTwo = new DrawableCard(DrawableCard.WHITE, WHITE_START_X + j * 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y + DrawableCard.CARD_HEIGHT + WHITE_MARGIN, playerCards[id].cardTwo, game.baseGame);
+							}
+						} else if (IsCzar()) {
 							whiteCardOne = new WinnableWhiteCard(WHITE_START_X + j * 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y, playerCards[id].cardOne, game.baseGame).WithWinningListener(() => {
 								DetermineRoundWinner(id);
 							});
@@ -790,7 +801,15 @@ namespace InhumaneCards {
 
 						DrawableCard whiteCard;
 
-						if (IsCzar()) {
+						if (IsWinnerDetermined()) {
+
+							if (winnerId == id) {
+								whiteCard = new WinnerWhiteCard(WHITE_START_X + j / 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y + j % 2 * (DrawableCard.CARD_HEIGHT + WHITE_MARGIN), playerCards[id].cardOne, game.baseGame);
+							} else {
+								whiteCard = new DrawableCard(DrawableCard.WHITE, WHITE_START_X + j / 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y + j % 2 * (DrawableCard.CARD_HEIGHT + WHITE_MARGIN), playerCards[id].cardOne, game.baseGame);
+							}
+
+						} else if (IsCzar()) {
 							whiteCard = new WinnableWhiteCard(WHITE_START_X + j / 2 * (DrawableCard.CARD_WIDTH + WHITE_MARGIN), WHITE_START_Y + j % 2 * (DrawableCard.CARD_HEIGHT + WHITE_MARGIN), playerCards[id].cardOne, game.baseGame)
 								.WithWinningListener(() => {
 									DetermineRoundWinner(id);
@@ -806,6 +825,16 @@ namespace InhumaneCards {
 			}
 		}
 
+		private void MakeWinnerText(string playerName) {
+			this.winnerText.text = playerName + " punktet";
+			this.winnerText.MeasureOriginToCenter();
+
+			var realWinnerPos = winnerText.position + new Vector2(0, -8 * winnerText.textSize);
+			var winnerTextMeasured = FontNum.DejaVuSans.F().MeasureString(winnerText.text) * winnerText.textSize;
+			var boxSize = (winnerTextMeasured + new Vector2(60, 60)).ToPoint();
+			winnerBox = new Rectangle((realWinnerPos - new Vector2(boxSize.X * 0.5f, boxSize.Y * 0.5f)).ToPoint(), boxSize);
+		}
+
 		private void DetermineRoundWinner(byte winnerId) {
 
 			if (IsWinnerDetermined()) {
@@ -814,9 +843,13 @@ namespace InhumaneCards {
 
 			this.winnerId = winnerId;
 
-			this.winnerText.text = game.GetPlayer(winnerId) + " punktet";
-			this.winnerText.MeasureOriginToCenter();
-			this.score[winnerId]++; 
+			MakeWinnerText(game.GetPlayer(winnerId));
+
+			this.score[winnerId]++;
+
+			UpdateScoreboard();
+
+			SetupWhiteCardsVotingPhase(votingPage, true);
 
 			if (IsCzar()) {
 
@@ -895,7 +928,7 @@ namespace InhumaneCards {
 
 			if (phase == PhaseEnum.SELECTING) {
 				if (playersWhoPicked == playerCount - 1 && tickNextPhaseShouldStart < ticks - 60) {
-					tickNextPhaseShouldStart = ticks + 30;
+					tickNextPhaseShouldStart = ticks + 60;
 				}
 			}
 
@@ -957,26 +990,45 @@ namespace InhumaneCards {
 
 			if (phase == PhaseEnum.VOTING) {
 				if (IsWinnerDetermined()) {
+					game.baseGame.Draw(TexNum.PIXEL.T(), winnerBox, DrawableCard.BLACK_COLOR);
 					winnerText.Draw();
 				}
 			}
 
 		}
 
-		private void DrawScoreboard() {
+		private IList<DrawableText> scoreboardTexts = new List<DrawableText>();
+		private Rectangle czarBox = new Rectangle();
+
+		private void UpdateScoreboard() {
+			scoreboardTexts.Clear();
 
 			for (byte b = 0; b < playerCount; b++) {
 
-				string nameScoreString = game.GetPlayer(b) + ": " + score[b];
-
 				var pos = new Vector2(BLACK_CARD_BOX.Location.X + BLACK_CARD_BOX.Width + 60 + b / 9 * 340, BLACK_CARD_BOX.Location.Y + b % 9 * 38);
 
-				game.baseGame.DrawString(FontNum.DejaVuSans.F(), nameScoreString, pos, DrawableText.TEXT_COLOR, 0f, Vector2.Zero, 0.6125f, SpriteEffects.None, 0);
+				string nameScoreString = game.GetPlayer(b) + ": " + score[b];
+
+				var drawableText = new DrawableText(nameScoreString, game.baseGame) {
+					textSize = 0.6125f,
+					position = pos
+				};
+
+				scoreboardTexts.Add(drawableText);
 
 				if (b == czarId) {
-					game.baseGame.Draw(TexNum.CZAR.T(), new Rectangle((pos - new Vector2(40, 0)).ToPoint(), new Point(30, 30)), Color.White);
+					czarBox = new Rectangle((pos - new Vector2(40, 0)).ToPoint(), new Point(30, 30));
 				}
 			}
+		}
+
+		private void DrawScoreboard() {
+
+			for (byte b = 0; b < scoreboardTexts.Count; b++) {
+				scoreboardTexts[b].Draw();
+			}
+
+			game.baseGame.Draw(TexNum.CZAR.T(), czarBox, DrawableText.TEXT_COLOR);
 		}
 	}
 

@@ -14,11 +14,10 @@ namespace InhumaneCards.Classes {
 		private Action winningAction = () => { };
 		private Button winnerButton;
 
-
 		public WinnableWhiteCard(int posX, int posY, string text, BaseGame game) : base(WHITE, posX, posY, text, game) {
 			
 
-			winnerButton = new Button("Gewinner", new Rectangle(posX + BUTTON_LEFT_OFFSET, posY + CARD_HEIGHT - BUTTON_HEIGHT - BUTTON_BOT_OFFSET, CARD_WIDTH - BUTTON_RIGHT_OFFSET - BUTTON_LEFT_OFFSET, BUTTON_HEIGHT), game, RevealActionWrapper);
+			winnerButton = new Button("Gewinner", new Rectangle(posX + BUTTON_LEFT_OFFSET, posY + CARD_HEIGHT - BUTTON_HEIGHT - BUTTON_BOT_OFFSET, CARD_WIDTH - BUTTON_RIGHT_OFFSET - BUTTON_LEFT_OFFSET, BUTTON_HEIGHT), game, WinningActionWrapper);
 			
 
 			while (lines.Count > 6) {
@@ -34,7 +33,7 @@ namespace InhumaneCards.Classes {
 			return this;
 		}
 
-		private void RevealActionWrapper() {
+		private void WinningActionWrapper() {
 			winningAction();
 		}
 
