@@ -30,12 +30,12 @@ namespace InhumaneCards.Classes {
 		public Button(string text, int posX, int posY, BaseGame game, Action onClicked) {
 			this.text = text;
 			this.game = game;
-			this.stringPos = new Vector2(posX, posY);
+			this.stringPos = new Vector2(posX, posY - BOX_Y_OFFSET);
 			var stringMeasured = FontNum.DejaVuSans.F().MeasureString(text);
 			stringOrigin = stringMeasured * 0.5f;
 			//stringMeasured *= TEXT_SIZE;
 
-			this.boxDestination = new Rectangle((int)(posX - stringOrigin.X * TEXT_SIZE - MARGIN * TEXT_SIZE * 1.5f) - MARGIN, (int)(posY - stringOrigin.Y * TEXT_SIZE) - MARGIN + BOX_Y_OFFSET, (int)(stringMeasured.X * TEXT_SIZE + 2 * MARGIN + 2 * MARGIN * TEXT_SIZE * 1.5f), (int)(stringMeasured.Y * TEXT_SIZE + 2 * MARGIN));
+			this.boxDestination = new Rectangle((int)(posX - stringOrigin.X * TEXT_SIZE - MARGIN * TEXT_SIZE * 1.5f) - MARGIN, (int)(posY - stringOrigin.Y * TEXT_SIZE) - MARGIN, (int)(stringMeasured.X * TEXT_SIZE + 2 * MARGIN + 2 * MARGIN * TEXT_SIZE * 1.5f), (int)(stringMeasured.Y * TEXT_SIZE + 2 * MARGIN));
 
 			this.onClicked = onClicked;
 		}

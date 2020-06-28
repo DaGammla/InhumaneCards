@@ -30,6 +30,9 @@ namespace InhumaneCards {
 		public bool hostsGame = false;
 		public bool mainPartStarted = false;
 
+		private byte winningPoints = 5;
+		private byte blankCards = 2;
+
 		private GameServer server;
 		private GameClient client;
 		private byte clientId = 0;
@@ -80,7 +83,7 @@ namespace InhumaneCards {
 				var currentCard = blackCards[i];
 				var markPosition = currentCard.IndexOf('^');
 				if (markPosition > 0) {
-					blackCards[i] = currentCard.Substring(0, markPosition);
+					blackCards[i] = currentCard.Substring(0, markPosition).Trim();
 					blackCardTakesTwo[i] = true;
 				}
 			}
@@ -162,6 +165,10 @@ namespace InhumaneCards {
 				this.playerCount = data.playerCount;
 			}
 			if (dat is StartGameNetDat) {
+				var data = (StartGameNetDat)dat;
+
+				this.blankCards = data.maxBlankCards;
+
 				ClientStartGame();
 			}
 		}
@@ -171,7 +178,7 @@ namespace InhumaneCards {
 
 			mainPartStarted = true;
 
-			server.MulticastData(new StartGameNetDat(players.ToArray(), playerCount));
+			server.MulticastData(new StartGameNetDat(blankCards, players.ToArray(), playerCount));
 		}
 
 		private void ClientStartGame() {
@@ -188,6 +195,63 @@ namespace InhumaneCards {
 			}
 		}
 
+		public void MoreWinningPoints() {
+			winningPoints++;
+			if (winningPoints > 100) {
+				winningPoints = 100;
+			}
+		}
+
+		public void LessWinningPoints() {
+			winningPoints--;
+			if (winningPoints > 253 || winningPoints < 2) {
+				winningPoints = 2;
+			}
+		}
+
+		public void MoreBlankCards() {
+			blankCards++;
+			if (blankCards > 100) {
+				blankCards = 100;
+			}
+		}
+
+		public void LessBlankCards() {
+			blankCards--;
+			if (blankCards > 253 || blankCards < 0) {
+				blankCards = 0;
+			}
+		}
+
+		public byte GetBlankCardCount() {
+			return blankCards;
+		}
+
+		public void BackToMainMenu() {
+			this.menu = new Menu(this);
+			this.partOfGame = null;
+
+			this.players = new List<string>();
+
+			this.players.Add(username);
+
+			this.playerCount = 1;
+			this.networkingStarted = false;
+			this.hostsGame = false;
+			this.mainPartStarted = false;
+			if (server != null)
+				this.server.StopServer();
+			this.server = null;
+			if (client != null)
+				this.client.StopClient();
+			this.client = null;
+			this.clientId = 0;
+		}
+
+		public byte GetWinningPoints() {
+			return winningPoints;
+		}
+
 		public void Update(GameTime gameTime) {
 
 			if (mainPartStarted) {
@@ -199,7 +263,6 @@ namespace InhumaneCards {
 
 		public void Draw(GameTime gameTime) {
 			baseGame.GetGraphicsDevice().Clear(CLEAR_COLOR);
-			//public abstract void Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth);
 			baseGame.Draw(TexNum.PIXEL.T(), LINE_1_POS, null, BOX_COLOR, 0f, Vector2.Zero, HOR_LINE_SIZE, SpriteEffects.None, 0);
 			baseGame.Draw(TexNum.PIXEL.T(), LINE_2_POS, null, BOX_COLOR, 0f, Vector2.Zero, HOR_LINE_SIZE, SpriteEffects.None, 0);
 			baseGame.Draw(TexNum.PIXEL.T(), LINE_1_POS, null, BOX_COLOR, 0f, Vector2.Zero, VER_LINE_SIZE, SpriteEffects.None, 0);

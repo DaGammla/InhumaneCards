@@ -40,7 +40,7 @@ namespace InhumaneCards.Classes.Networking {
 
 			try {
 
-				socket = new TcpListener(ip, 16151);
+				socket = new TcpListener(ip, 7674);
 				socket.Start();
 
 			} catch (Exception e){
@@ -55,18 +55,44 @@ namespace InhumaneCards.Classes.Networking {
 
 				acceptingClients = true;
 
-				while (acceptingClients) {
-					byte clientId = (connections.Count + 1).B();
-					ClientConnection connection = new ClientConnection(socket.AcceptTcpClient(), clientId, DataReceivedWrapper);
-					if (acceptingClients) {
+				try {
 
-						connections.Add(connection);
-						game.OnClientConnected(clientId);
+
+					while (acceptingClients) {
+						byte clientId = (connections.Count + 1).B();
+						TcpClient client = socket.AcceptTcpClient();
+
+						if (acceptingClients) {
+							ClientConnection connection = new ClientConnection(client, clientId, DataReceivedWrapper);
+							connections.Add(connection);
+							game.OnClientConnected(clientId);
+						} else {
+							client.Close();
+						}
 					}
+				} catch {
+
+					game.BackToMainMenu();
 				}
 
 			}).Start();
 
+		}
+
+		public void StopServer() {
+			try {
+
+				StopAcceptingClients();
+				for (byte i = 0; i < connections.Count; i++) {
+					connections[i].StopConnection();
+				}
+				running = false;
+				socket.Stop();
+				socket = null;
+				onDataReceived = (_, __) => { };
+			} catch {
+
+			}
 		}
 
 		private void DataReceivedWrapper(NetworkingData data, byte clientId) {
@@ -79,8 +105,8 @@ namespace InhumaneCards.Classes.Networking {
 
 		public void MulticastData(NetworkingData data) {
 
-			if (!running)
-				throw new Exception("Server is not running!");
+			/*if (!running)
+				throw new Exception("Server is not running!");*/
 
 			//i does not represent the clients id but is just an iterator
 			for (byte i = 0; i < connections.Count; i++) {
@@ -90,8 +116,8 @@ namespace InhumaneCards.Classes.Networking {
 		}
 
 		public void MulticastDataExcept(NetworkingData data, params byte[] excluded_ids) {
-			if (!running)
-				throw new Exception("Server is not running!");
+			/*if (!running)
+				throw new Exception("Server is not running!");*/
 
 			//Client ids start at 1 as id 0 is always the server
 			for (byte id = 1; id < connections.Count + 1; id++) {
@@ -122,7 +148,7 @@ namespace InhumaneCards.Classes.Networking {
 
 	public class ClientConnection {
 
-		//TcpClient client;
+		TcpClient client;
 		NetworkStream stream;
 
 		Thread check_thread;
@@ -132,7 +158,7 @@ namespace InhumaneCards.Classes.Networking {
 			client.ReceiveTimeout = 5000;
 			client.SendTimeout = 5000;
 
-			//this.client = client;
+			this.client = client;
 			this.stream = client.GetStream();
 
 			byte[] id_arr = new byte[1];
@@ -140,10 +166,15 @@ namespace InhumaneCards.Classes.Networking {
 			stream.Write(id_arr, 0, 1);
 
 			this.check_thread = new Thread(async () => {
-				while (true) {
-					byte[] data = new byte[2048];
-					await stream.ReadAsync(data, 0, 2048);
-					onDataReceived(NetworkingData.FromBytes(data), id);
+				try {
+
+					while (true) {
+						byte[] data = new byte[2048];
+						await stream.ReadAsync(data, 0, 2048);
+						onDataReceived(NetworkingData.FromBytes(data), id);
+					}
+				} catch {
+
 				}
 			});
 			this.check_thread.Start();
@@ -152,6 +183,17 @@ namespace InhumaneCards.Classes.Networking {
 		public void SendData(NetworkingData data) {
 			byte[] byteData = data.ToByteArray();
 			stream.Write(byteData, 0, byteData.Length);
+		}
+
+		public void StopConnection() {
+			try {
+				check_thread = null;
+				client.Close();
+				client = null;
+				stream = null;
+			} catch {
+
+			}
 		}
 	}
 }

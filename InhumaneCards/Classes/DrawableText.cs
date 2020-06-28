@@ -28,7 +28,7 @@ namespace InhumaneCards.Classes {
 		}
 
 		public DrawableText MeasureOriginToCenter() {
-			this.origin = FontNum.DejaVuSans.F().MeasureString(text) * 0.5f;
+			this.origin = FontNum.DejaVuSans.F().MeasureString(text) * 0.5f + new Vector2(0, -8 * textSize);
 			return this;
 		}
 	}

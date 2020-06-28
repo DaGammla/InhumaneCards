@@ -99,6 +99,8 @@ namespace InhumaneCardsDesktop {
         protected override void Initialize(){
             childGame.Init();
 
+            Window.Title = "Inhumane Cards for Desktop";
+
             base.Initialize();
         }
 
@@ -223,14 +225,20 @@ namespace InhumaneCardsDesktop {
             return mousePosition;
         }
 
+        private bool otherTextInputOpen = false;
+
         public override void PerformTextInput(string question, string defaultText, Action<string> onDoneAction) {
-            var pos = Window.Position;
-            new Task(() => {
-                string result = Microsoft.VisualBasic.Interaction.InputBox(question, "Title", defaultText, pos.X + (int)(InhumaneGame.TARGET_X * 0.5 * screenSize) - 240, pos.Y + (int)(InhumaneGame.TARGET_Y * 0.5 * screenSize) - 150);
-                if (result != null && result.Length > 0) {
-                    onDoneAction(result);
-                }
-            }).Start();
+            if (!otherTextInputOpen) {
+                otherTextInputOpen = true;
+                var pos = Window.Position;
+                new Task(() => {
+                    string result = Microsoft.VisualBasic.Interaction.InputBox(question, Window.Title, defaultText, pos.X + (int)(InhumaneGame.TARGET_X * 0.5 * screenSize) - 240, pos.Y + (int)(InhumaneGame.TARGET_Y * 0.5 * screenSize) - 150);
+                    if (result != null && result.Length > 0) {
+                        onDoneAction(result);
+                    }
+                    otherTextInputOpen = false;
+                }).Start();
+            }
         }
     }
 }

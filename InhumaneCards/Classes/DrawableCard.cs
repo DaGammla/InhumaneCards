@@ -22,6 +22,7 @@ namespace InhumaneCards.Classes {
 		private static readonly Color TEXT_COLOR = new Color(0.82f, 0.82f, 0.82f);
 
 		protected List<string> lines;
+		protected List<Vector2> lineVectors;
 
 		private bool color;
 		private int posX, posY;
@@ -41,6 +42,7 @@ namespace InhumaneCards.Classes {
 
 		public void UpdateText(string text) {
 			lines = new List<string>();
+			lineVectors = new List<Vector2>();
 
 			if (text == null) {
 				text = "";
@@ -88,13 +90,17 @@ namespace InhumaneCards.Classes {
 
 			}
 			lines.Add(currentLine.Trim());
+
+			for (int i = 0; i < lines.Count; i++) {
+				lineVectors.Add(new Vector2(posX + MARGIN, posY + MARGIN + LINE_HEIGHT * i));
+			}
 		}
 
 		public virtual void Draw() {
 			game.Draw(TexNum.PIXEL.T(), destination, (color == BLACK ? BLACK_COLOR : WHITE_COLOR));
 
 			for (int i = 0; i < lines.Count; i++) {
-				game.DrawString(FontNum.DejaVuSans.F(), lines[i], new Vector2(posX + MARGIN, posY + MARGIN + LINE_HEIGHT * i), TEXT_COLOR, 0f, Vector2.Zero, TEXT_SIZE, SpriteEffects.None, 0f);
+				game.DrawString(FontNum.DejaVuSans.F(), lines[i], lineVectors[i], TEXT_COLOR, 0f, Vector2.Zero, TEXT_SIZE, SpriteEffects.None, 0f);
 			}
 		}
 

@@ -13,6 +13,14 @@ namespace InhumaneCards.Classes {
 		Button changeNameButton;
 		Button startGameButton;
 
+
+		DrawableText pointsNeededText;
+		Button morePointsButton;
+		Button lessPointsButton;
+		DrawableText blanksAvailableText;
+		Button moreBlanksButton;
+		Button lessBlanksButton;
+
 		DrawableText usernameText;
 		DrawableText waitingForHostText;
 
@@ -51,6 +59,41 @@ namespace InhumaneCards.Classes {
 				textSize = 0.8f,
 				position = new Vector2(960, 800)
 			}.MeasureOriginToCenter();
+
+			morePointsButton = new Button("   ++   ", 960, 196, game.baseGame, () => {
+				game.MoreWinningPoints();
+				pointsNeededText.text = "Punkte benötigt zum Sieg: " + game.GetWinningPoints();
+				pointsNeededText.MeasureOriginToCenter();
+			});
+
+			pointsNeededText = new DrawableText("Punkte benötigt zum Sieg: " + game.GetWinningPoints(), game.baseGame) {
+				textSize = 0.8f,
+				position = new Vector2(960, 256)
+			}.MeasureOriginToCenter();
+
+			lessPointsButton = new Button("   --   ", 960, 316, game.baseGame, () => {
+				game.LessWinningPoints();
+				pointsNeededText.text = "Punkte benötigt zum Sieg: " + game.GetWinningPoints();
+				pointsNeededText.MeasureOriginToCenter();
+			});
+
+
+			moreBlanksButton = new Button("   ++   ", 960, 496, game.baseGame, () => {
+				game.MoreBlankCards();
+				blanksAvailableText.text = "Anzahl beschreibbarer Karten: " + game.GetBlankCardCount();
+				blanksAvailableText.MeasureOriginToCenter();
+			});
+
+			blanksAvailableText = new DrawableText("Anzahl beschreibbarer Karten: " + game.GetBlankCardCount(), game.baseGame) {
+				textSize = 0.8f,
+				position = new Vector2(960, 556)
+			}.MeasureOriginToCenter();
+
+			lessBlanksButton = new Button("   --   ", 960, 616, game.baseGame, () => {
+				game.LessBlankCards();
+				blanksAvailableText.text = "Anzahl beschreibbarer Karten: " + game.GetBlankCardCount();
+				blanksAvailableText.MeasureOriginToCenter();
+			});
 		}
 
 		public void Update() {
@@ -61,6 +104,13 @@ namespace InhumaneCards.Classes {
 			} else {
 				if (game.hostsGame) {
 					startGameButton.Update();
+
+					morePointsButton.Update();
+					lessPointsButton.Update();
+
+					moreBlanksButton.Update();
+					lessBlanksButton.Update();
+					
 				} else {
 					
 				}
@@ -76,6 +126,14 @@ namespace InhumaneCards.Classes {
 			} else {
 				if (game.hostsGame) {
 					startGameButton.Draw();
+
+					morePointsButton.Draw();
+					pointsNeededText.Draw();
+					lessPointsButton.Draw();
+
+					moreBlanksButton.Draw();
+					blanksAvailableText.Draw();
+					lessBlanksButton.Draw();
 				} else {
 					waitingForHostText.Draw();
 				}

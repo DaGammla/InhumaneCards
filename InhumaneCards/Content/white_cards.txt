@@ -422,7 +422,7 @@ Eine Bürgerversicherung
 Typen, die nicht anrufen
 Das Passwort deiner Mutter
 Im Kino einen runtergeholt bekommen
-Einen Furz, der Wellen in die Tapette schlägt
+Einen Furz, der Wellen in die Tapete schlägt
 20 Euro
 Bis zur Hochzeit warten
 Das Leben in vollen Zügen genießen
@@ -577,7 +577,7 @@ Laktoseintoleranz
 Mutter Theresa
 Der Amoklauf von Erfurt
 Unangenehm attraktive Tiere
-Femnazis
+Feminazis
 Ehrenmord
 Schlafentzugsfolter
 Massengräber
@@ -658,3 +658,4 @@ Kleinen Schnurrer rasieren
 Helene Fischer
 Löcher in ein Kondom machen
 Coronavirus
+Kindesmissbrauch

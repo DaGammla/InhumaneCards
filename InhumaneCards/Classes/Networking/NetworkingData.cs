@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Xml;
 using System.Xml.Serialization;
 
 namespace InhumaneCards.Classes.Networking {
@@ -21,21 +19,39 @@ namespace InhumaneCards.Classes.Networking {
 	[XmlInclude(typeof(RevealCardNetDat))]
 	[XmlInclude(typeof(OpenPageNetDat))]
 	[XmlInclude(typeof(RoundWinnerNetDat))]
+	[XmlInclude(typeof(GameWinnerNetDat))]
+	[XmlRoot("Dat", Namespace = "")]
 	public class NetworkingData {
+
+		static XmlSerializer serializer = new XmlSerializer(typeof(NetworkingData));
+		static XmlSerializerNamespaces ns = new XmlSerializerNamespaces(new[] { XmlQualifiedName.Empty });
+		static XmlWriterSettings settings = new XmlWriterSettings() {
+			Indent = false,
+			OmitXmlDeclaration = true
+		};
+
 		public byte[] ToByteArray() {
-			var serializer = new XmlSerializer(typeof(NetworkingData));
-			using (var ms = new MemoryStream()) {
-				serializer.Serialize(ms, this);
-				return ms.ToArray();
+			using (var stringWriter = new StringWriter())
+			using (var xmlWriter = XmlWriter.Create(stringWriter, settings)) {
+				serializer.Serialize(xmlWriter, this, ns);
+				var xml = stringWriter.ToString();
+				//*
+				xml = xml.Replace("xmlns:p1=\"http://www.w3.org/2001/XMLSchema-instance\"", "&&&");
+				xml = xml.Replace("p1:type=", "&&");
+				//*/
+
+				return Encoding.UTF8.GetBytes(xml);
 			}
 		}
 
 		public static NetworkingData FromBytes(byte[] array) {
-			using (var memStream = new MemoryStream()) {
-				var serializer = new XmlSerializer(typeof(NetworkingData));
-				memStream.Write(array, 0, array.Length);
-				memStream.Seek(0, SeekOrigin.Begin);
-				var obj = (NetworkingData) serializer.Deserialize(memStream);
+			var xml = Encoding.UTF8.GetString(array);
+			//*
+			xml = xml.Replace("&&&", "xmlns:p1=\"http://www.w3.org/2001/XMLSchema-instance\"");
+			xml = xml.Replace("&&", "p1:type=");
+			//*/
+			using (var stringReader = new StringReader(xml)) {
+				var obj = (NetworkingData) serializer.Deserialize(stringReader);
 				return obj;
 			}
 		}
@@ -50,7 +66,9 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("A")]
 	public class JoinNetDat : NetworkingData {
+		[XmlAttribute("a")]
 		public string username;
 
 		public JoinNetDat() {
@@ -63,9 +81,13 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("B")]
 	public class PlayersNetDat : NetworkingData {
+		[XmlArray("a")]
+		[XmlArrayItem("s")]
 		public string[] players;
 
+		[XmlAttribute("b")]
 		public byte playerCount;
 
 		public PlayersNetDat(string[] players, byte playerCount) {
@@ -79,9 +101,12 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("C")]
 	public class StartGameNetDat : PlayersNetDat {
-		public StartGameNetDat(string[] players, byte playerCount) : base(players, playerCount) {
-
+		[XmlAttribute("c")]
+		public byte maxBlankCards;
+		public StartGameNetDat(byte maxBlankCards, string[] players, byte playerCount) : base(players, playerCount) {
+			this.maxBlankCards = maxBlankCards;
 		}
 
 		public StartGameNetDat() : base() {
@@ -90,6 +115,7 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("D")]
 	public class ClientReadyNetDat : NetworkingData {
 		public ClientReadyNetDat() {
 
@@ -97,10 +123,13 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("E")]
 	public class NewBlackCardNetDat : NetworkingData {
 
+		[XmlAttribute("a")]
 		public string cardText;
 
+		[XmlAttribute("b")]
 		public bool takesTwo;
 
 		public NewBlackCardNetDat(string cardText, bool takesTwo) {
@@ -114,7 +143,9 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("F")]
 	public class StartSelectingNetDat : NewBlackCardNetDat {
+		[XmlAttribute("c")]
 		public byte czarId;
 
 		public StartSelectingNetDat(byte czarId, string cardText, bool takesTwo) : base(cardText, takesTwo) {
@@ -127,6 +158,7 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("G")]
 	public class RequestNewBlackCardNetDat : NetworkingData {
 		public RequestNewBlackCardNetDat() {
 
@@ -134,8 +166,13 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("H")]
 	public class ClientCardNetDat : NetworkingData {
+
+		[XmlAttribute("a")]
 		public string cardOne;
+
+		[XmlAttribute("b")]
 		public string cardTwo;
 		public ClientCardNetDat() {
 
@@ -150,8 +187,13 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("I")]
 	public class StartVotingPhaseNetDat : NetworkingData {
+		[XmlArray("a")]
+		[XmlArrayItem("p")]
 		public PlayerCards[] playerCards;
+
+		[XmlAttribute("b")]
 		public int randSeed;
 		public StartVotingPhaseNetDat() {
 
@@ -163,6 +205,7 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("J")]
 	public class ClientCardCancelNetDat : NetworkingData {
 		public ClientCardCancelNetDat() {
 
@@ -170,8 +213,12 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("K")]
 	public class RevealCardNetDat : NetworkingData {
+		[XmlAttribute("a")]
 		public byte playerToReveal;
+
+		[XmlAttribute("b")]
 		public int revealFlag;
 		public RevealCardNetDat() {
 
@@ -184,7 +231,9 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("L")]
 	public class OpenPageNetDat : NetworkingData {
+		[XmlAttribute("a")]
 		public byte page;
 		public OpenPageNetDat() {
 
@@ -196,7 +245,9 @@ namespace InhumaneCards.Classes.Networking {
 	}
 
 	[Serializable]
+	[XmlType("M")]
 	public class RoundWinnerNetDat : NetworkingData {
+		[XmlAttribute("a")]
 		public byte winnerId;
 		public RoundWinnerNetDat() {
 
@@ -207,5 +258,17 @@ namespace InhumaneCards.Classes.Networking {
 		}
 	}
 
+	[Serializable]
+	[XmlType("N")]
+	public class GameWinnerNetDat : NetworkingData {
+		[XmlAttribute("a")]
+		public byte winnerId;
+		public GameWinnerNetDat() {
 
+		}
+
+		public GameWinnerNetDat(byte winnerId) {
+			this.winnerId = winnerId;
+		}
+	}
 }
