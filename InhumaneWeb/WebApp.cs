@@ -89,7 +89,7 @@ namespace InhumaneWeb{
                 webGame = new WebGame();
                 webGame.Run();
                 overlay.style.display = "none";
-            }, 10);
+            }, 200);
 
             
         }

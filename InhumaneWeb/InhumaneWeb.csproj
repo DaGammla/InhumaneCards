@@ -7,12 +7,46 @@
   <ItemGroup>
     <MonoGameContentReference Include="**\*.mgcb" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="bin\Debug\net47\Content\black_cards.txt" />
+    <Content Include="bin\Debug\net47\Content\white_cards.txt" />
+    <Content Include="bin\Debug\net47\index.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="bin\Debug\net47\bridge.console.min.js" />
+    <None Include="bin\Debug\net47\Bridge.dll" />
+    <None Include="bin\Debug\net47\bridge.meta.min.js" />
+    <None Include="bin\Debug\net47\bridge.min.js" />
+    <None Include="bin\Debug\net47\Content\font\DejaVuSans.xnb" />
+    <None Include="bin\Debug\net47\Content\pixel.xnb" />
+    <None Include="bin\Debug\net47\Content\textures\Cross.xnb" />
+    <None Include="bin\Debug\net47\Content\textures\Czar.xnb" />
+    <None Include="bin\Debug\net47\InhumaneWeb.dll" />
+    <None Include="bin\Debug\net47\InhumaneWeb.meta.min.js" />
+    <None Include="bin\Debug\net47\InhumaneWeb.min.js" />
+    <None Include="bin\Debug\net47\InhumaneWeb.pdb" />
+    <None Include="bin\Debug\net47\MonoGame.Framework.dll" />
+    <None Include="bin\Debug\net47\MonoGame.Framework.meta.min.js" />
+    <None Include="bin\Debug\net47\MonoGame.Framework.min.js" />
+    <None Include="bin\Debug\net47\Retyped.Core.dll" />
+    <None Include="bin\Debug\net47\Retyped.dom.dll" />
+    <None Include="bin\Debug\net47\Retyped.es5.dll" />
+    <None Include="bin\Debug\net47\Retyped.gamepad.dll" />
+    <None Include="bin\Debug\net47\Retyped.webgl-ext.dll" />
+    <None Include="bin\Debug\net47\Retyped.webgl2.dll" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="MonoGame.Content.Builder" Version="3.7.0.9" />
     <PackageReference Include="MonoGame.Framework.Bridge" Version="3.7.0.2" />
     <PackageReference Include="Retyped.dom" Version="2.8.6733" />
     <PackageReference Include="Bridge" Version="17.2.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="bin\DesktopGL\Content\" />
   </ItemGroup>
   
   <Import Project="..\InhumaneCards\InhumaneCards.projitems" Label="Shared" />
