@@ -17,6 +17,8 @@ namespace InhumaneCards.Classes.Networking {
 		private List<ClientConnection> connections = new List<ClientConnection>();
 		private TcpListener socket;
 
+		private WebSocketServer webSocket;
+
 		private bool running = false;
 		Action<NetworkingData, /* CLient ID */ byte> onDataReceived = (_, __) => { };
 
@@ -43,6 +45,9 @@ namespace InhumaneCards.Classes.Networking {
 				socket = new TcpListener(ip, 7674);
 				socket.Start();
 
+				webSocket = new WebSocketServer(ip, 7675);
+				webSocket.Start();
+
 			} catch (Exception e){
 				Console.WriteLine(e.Message);
 				Console.WriteLine(e.StackTrace);
@@ -59,8 +64,33 @@ namespace InhumaneCards.Classes.Networking {
 
 
 					while (acceptingClients) {
-						byte clientId = (connections.Count + 1).B();
+
 						TcpClient client = socket.AcceptTcpClient();
+						byte clientId = (connections.Count + 1).B();
+
+						if (acceptingClients) {
+							ClientConnection connection = new ClientConnection(client, clientId, DataReceivedWrapper);
+							connections.Add(connection);
+							game.OnClientConnected(clientId);
+						} else {
+							client.Close();
+						}
+					}
+				} catch {
+
+					game.BackToMainMenu();
+				}
+
+			}).Start();
+
+			new Thread(() => {
+				try {
+
+
+					while (acceptingClients) {
+
+						WebSocketClient client = webSocket.AccecptWebSocketClient();
+						byte clientId = (connections.Count + 1).B();
 
 						if (acceptingClients) {
 							ClientConnection connection = new ClientConnection(client, clientId, DataReceivedWrapper);
@@ -88,6 +118,7 @@ namespace InhumaneCards.Classes.Networking {
 				}
 				running = false;
 				socket.Stop();
+				webSocket.Stop();
 				socket = null;
 				onDataReceived = (_, __) => { };
 			} catch {
@@ -149,9 +180,13 @@ namespace InhumaneCards.Classes.Networking {
 	public class ClientConnection {
 
 		TcpClient client;
+		WebSocketClient webClient;
 		NetworkStream stream;
 
 		Thread check_thread;
+
+		bool webSocket = false;
+
 
 		public ClientConnection(TcpClient client, byte id, Action<NetworkingData, byte> onDataReceived) {
 
@@ -180,17 +215,57 @@ namespace InhumaneCards.Classes.Networking {
 			this.check_thread.Start();
 		}
 
+		public ClientConnection(WebSocketClient client, byte id, Action<NetworkingData, byte> onDataReceived) {
+
+			webSocket = true;
+
+			this.webClient = client;
+
+			byte[] id_arr = new byte[1];
+			id_arr[0] = id;
+			webClient.Write(id_arr);
+
+			this.check_thread = new Thread(async () => {
+				try {
+
+					while (true) {
+						byte[] data = await webClient.ReadAsync(2048);
+						onDataReceived(NetworkingData.FromBytes(data), id);
+					}
+				} catch {
+
+				}
+			});
+			this.check_thread.Start();
+		}
+
+
+
 		public void SendData(NetworkingData data) {
 			byte[] byteData = data.ToByteArray();
-			stream.Write(byteData, 0, byteData.Length);
+
+			if (webSocket) {
+				webClient.Write(byteData);
+			} else {
+				stream.Write(byteData, 0, byteData.Length);
+			}
+			
 		}
 
 		public void StopConnection() {
 			try {
 				check_thread = null;
-				client.Close();
+
+				if (webSocket) {
+					webClient.Close();
+				} else {
+					client.Close();
+					stream.Close();
+				}
+				
 				client = null;
 				stream = null;
+
 			} catch {
 
 			}

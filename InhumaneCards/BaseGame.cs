@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace InhumaneCards {
@@ -19,7 +18,6 @@ namespace InhumaneCards {
 		public abstract GraphicsDeviceManager GetGraphics();
 
 		public abstract SpriteBatch GetSpriteBatch();
-
 
 		private SpriteSortMode sortMode = SpriteSortMode.Deferred;
 		private BlendState blendState = null;
@@ -63,6 +61,8 @@ namespace InhumaneCards {
 		public abstract bool GotMousePressed();
 		public abstract bool IsMouseDown();
 		public abstract Point GetMousePosition();
+
+		public abstract bool CanHostGames();
 
 		//Draw Methods
 		public abstract void Draw(Texture2D texture, Rectangle destinationRectangle, Color color);

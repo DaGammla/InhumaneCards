@@ -12,7 +12,7 @@ namespace InhumaneCards {
 
 		public const int TARGET_X = 1920, TARGET_Y = 1080;
 
-		private static readonly Color CLEAR_COLOR = new Color(0.08f, 0.08f, 0.08f);
+		public static readonly Color CLEAR_COLOR = new Color(0.08f, 0.08f, 0.08f);
 
 		//Values for the box that frames the entire application
 		public const int BOX_OFFSET = 20;
@@ -49,21 +49,25 @@ namespace InhumaneCards {
 		}
 
 		public void Init() {
+
+			this.players.Add(username);
+		}
+
+		public void LoadContent() {
+
 			Textures.LoadTextures(baseGame.GetContent());
 			Fonts.LoadFonts(baseGame.GetContent());
 
 			LoadCards();
 
 			this.menu = new Menu(this);
-
-			this.players.Add(username);
 		}
 
 		public string[] blackCards = null;
 		public bool[] blackCardTakesTwo = null;
 		public string[] whiteCards = null;
 
-		void LoadCards() {
+		public void LoadCards() {
 
 
 			Console.WriteLine("Loading Cards...");
@@ -135,12 +139,12 @@ namespace InhumaneCards {
 			players.Add(username);
 		}
 
-		public void JoinGame(string address) {
+		public async void JoinGame(string address) {
 			networkingStarted = true;
 			hostsGame = false;
 
 			this.client = new GameClient();
-			this.clientId = client.Connect(address);
+			this.clientId = await client.Connect(address);
 			client.SetDataReceiver(LobbyClientDataReceiver);
 
 			client.SendDataToServer(new JoinNetDat(username));

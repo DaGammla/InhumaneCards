@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Microsoft.Xna.Framework;
 
@@ -12,6 +13,7 @@ namespace InhumaneCards.Classes {
 		Button joinButton;
 		Button changeNameButton;
 		Button startGameButton;
+		DrawableText cantHostText;
 
 
 		DrawableText pointsNeededText;
@@ -31,12 +33,24 @@ namespace InhumaneCards.Classes {
 		}
 
 		private void SetupElements() {
-			hostButton = new Button("Spiel hosten", 480, 720, game.baseGame, () => { game.HostGame(); });
-			joinButton = new Button("Spiel beitreten", 1440, 720, game.baseGame, () => {
-				game.baseGame.PerformTextInput("Ip Adresse", "", (output) => {
-					game.JoinGame(output);
+			if (game.baseGame.CanHostGames()) {
+				hostButton = new Button("Spiel hosten", 480, 720, game.baseGame, () => { game.HostGame(); });
+				joinButton = new Button("Spiel beitreten", 1440, 720, game.baseGame, () => {
+					game.baseGame.PerformTextInput("Ip Adresse", "", (output) => {
+						game.JoinGame(output);
+					});
 				});
-			});
+			} else {
+				joinButton = new Button("Spiel beitreten", 960, 760, game.baseGame, () => {
+					game.baseGame.PerformTextInput("Ip Adresse", "", (output) => {
+						game.JoinGame(output);
+					});
+				});
+				cantHostText = new DrawableText("Aus dem Browser kann nicht gehostet werden", game.baseGame) {
+					textSize = 0.8f,
+					position = new Vector2(960, 880) 
+				}.MeasureOriginToCenter();
+			}
 
 			changeNameButton = new Button("Name ändern", 960, 520, game.baseGame, () => {
 				game.baseGame.PerformTextInput("Neuer Name", game.username, (newName) => {
@@ -98,7 +112,9 @@ namespace InhumaneCards.Classes {
 
 		public void Update() {
 			if (!game.networkingStarted) {
-				hostButton.Update();
+				if (game.baseGame.CanHostGames()) {
+					hostButton.Update();
+				}
 				joinButton.Update();
 				changeNameButton.Update();
 			} else {
@@ -119,7 +135,11 @@ namespace InhumaneCards.Classes {
 
 		public void Draw() {
 			if (!game.networkingStarted) {
-				hostButton.Draw();
+				if (game.baseGame.CanHostGames()) {
+					hostButton.Draw();
+				} else {
+					cantHostText.Draw();
+				}
 				joinButton.Draw();
 				changeNameButton.Draw();
 				usernameText.Draw();

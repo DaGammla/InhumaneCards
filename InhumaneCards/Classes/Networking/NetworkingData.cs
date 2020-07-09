@@ -35,6 +35,9 @@ namespace InhumaneCards.Classes.Networking {
 			using (var xmlWriter = XmlWriter.Create(stringWriter, settings)) {
 				serializer.Serialize(xmlWriter, this, ns);
 				var xml = stringWriter.ToString();
+
+				Console.WriteLine(xml);
+
 				//*
 				xml = xml.Replace("xmlns:p1=\"http://www.w3.org/2001/XMLSchema-instance\"", "&&&");
 				xml = xml.Replace("p1:type=", "&&");
@@ -269,6 +272,24 @@ namespace InhumaneCards.Classes.Networking {
 
 		public GameWinnerNetDat(byte winnerId) {
 			this.winnerId = winnerId;
+		}
+	}
+
+
+
+
+	[Serializable]
+	public class PlayerCards {
+		[XmlAttribute("a")]
+		public string cardOne;
+		[XmlAttribute("b")]
+		public string cardTwo;
+		public PlayerCards(string cardOne, string cardTwo) {
+			this.cardOne = cardOne;
+			this.cardTwo = cardTwo;
+		}
+		public PlayerCards() {
+
 		}
 	}
 }

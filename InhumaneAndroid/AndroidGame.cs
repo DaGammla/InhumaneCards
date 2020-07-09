@@ -70,6 +70,8 @@ namespace InhumaneCardsAndroid {
 			// Create a new SpriteBatch, which can be used to draw textures.
 			spriteBatch = new SpriteBatch(GraphicsDevice);
 
+			childGame.LoadContent();
+
 			// TODO: use this.Content to load your game content here
 		}
 
@@ -210,6 +212,10 @@ namespace InhumaneCardsAndroid {
 
 		public override Point GetMousePosition() {
 			return mousePosition;
+		}
+
+		public override bool CanHostGames() {
+			return true;
 		}
 	}
 }

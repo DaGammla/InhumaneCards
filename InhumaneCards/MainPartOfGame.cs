@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml.Serialization;
 
 namespace InhumaneCards {
 	class MainPartOfGame {
@@ -460,7 +459,7 @@ namespace InhumaneCards {
 
 			UpdateScoreboard();
 
-			if (IsCzar()) {
+			if (IsHost()) {
 
 				this.drawableBlackCard = new CrossableCard(DrawableCard.BLACK, BLACK_CARD_X, BLACK_CARD_Y, blackCardText, game.baseGame).WithCrossListener(() => {
 					if (IsHost()) {
@@ -1120,21 +1119,6 @@ namespace InhumaneCards {
 			}
 
 			game.baseGame.Draw(TexNum.CZAR.T(), czarBox, DrawableText.TEXT_COLOR);
-		}
-	}
-
-	[Serializable]
-	public class PlayerCards {
-		[XmlAttribute("a")]
-		public string cardOne;
-		[XmlAttribute("b")]
-		public string cardTwo;
-		public PlayerCards(string cardOne, string cardTwo) {
-			this.cardOne = cardOne;
-			this.cardTwo = cardTwo;
-		}
-		public PlayerCards() {
-			
 		}
 	}
 

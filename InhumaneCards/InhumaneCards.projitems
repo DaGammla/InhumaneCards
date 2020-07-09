@@ -20,6 +20,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Classes\Networking\GameClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\Networking\GameServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\Networking\NetworkingData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Networking\WebSocketClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Networking\WebSocketServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\WinnerWhiteCard.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\WinnableWhiteCard.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\RevealableWhiteCard.cs" />

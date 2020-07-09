@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +16,7 @@ namespace InhumaneCards.Classes.Networking {
 
 		NetworkStream stream;
 
-		Thread check_thread;
+		Task check_thread;
 
 		Action<NetworkingData> onDataReceived = (_) => { };
 
@@ -34,7 +34,7 @@ namespace InhumaneCards.Classes.Networking {
 			this.onDataReceived = onDataReceived;
 		}
 
-		public byte Connect(string address) {
+		public async Task<byte> Connect(string address) {
 
 			socket = new TcpClient();
 			try {
@@ -45,16 +45,13 @@ namespace InhumaneCards.Classes.Networking {
 				socket.Connect(address, 7674);
 				stream = socket.GetStream();
 
-				while (!stream.DataAvailable) {
-					Thread.Sleep(10);
-				}
-
 				byte[] id_arr = new byte[1];
-				stream.Read(id_arr, 0, 1);
+				await stream.ReadAsync(id_arr, 0, 1);
 				byte id = id_arr[0];
 
-				this.check_thread = new Thread(async () => {
+				this.check_thread = new Task(async () => {
 					try {
+
 						while (true) {
 
 							byte[] data = new byte[2048];
